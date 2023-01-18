@@ -3,11 +3,19 @@ const db = require('./utils/database');
 const initModels = require('./models/init.model');
 const Users = require('./models/users.model');
 const Todos = require('./models/todos.model');
-
+const userRoutes = require('./routes/users.routes');
+const todoRoutes = require('./routes/todos.routes');
+const CategoriesRouter = require('./routes/categories.routes');
+const cors = require('cors');
+const authRoute = require('./routes/auth.routes')
+require("dotenv").config();
+// console.log(process.env.USERNAME);
 const app = express();
 
 app.use(express.json());
-const PORT = 8000;
+const PORT = process.env.PORT;
+
+app.use(cors());
 
 db.authenticate()
 .then(()=>console.log("autenticacion exitosa"))
@@ -21,6 +29,12 @@ db.sync({force: false})
 app.get('/', (req, res)=>{
     res.status(200).json({message: 'bienvenido al servidor'})
 });
+
+app.use('/api/v1', userRoutes);
+
+
+
+app.use('/api/v1', CategoriesRouter);
 
 app.get('/users', async (req, res)=>{
  try {
@@ -86,7 +100,11 @@ app.put("/users/:id", async (req, res) => {
       res.status(400).json(error.message);
     }
   });
-  
+
+  //TODOS AREA-----------------------------//
+
+  app.use('/api/v1', todoRoutes);
+
   app.get('/tasks', async(req, res)=>{
     try {
         const result = await Todos.findAll();
@@ -139,7 +157,8 @@ app.put("/users/:id", async (req, res) => {
       res.status(400).json(error.message);
     }
   });
-
+  app.use('/api/v1', authRoute);
+  
   app.delete("/tasks/:id", async (req, res) => {
     try {
       const { id } = req.params;
